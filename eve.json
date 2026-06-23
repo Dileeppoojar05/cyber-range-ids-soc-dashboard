@@ -1,0 +1,1 @@
+{"event_type":"alert","timestamp":"test","src_ip":"127.0.0.1","alert":{"signature":"DDoS flood"}}

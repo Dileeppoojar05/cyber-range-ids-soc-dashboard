@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cyber Range Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 { color: #38bdf8; }
+
+        form {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            background: #38bdf8;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #334155;
+            padding: 10px;
+        }
+
+        th { background: #1e293b; }
+
+        .HIGH { color: orange; }
+        .CRITICAL { color: red; }
+    </style>
+</head>
+<body>
+
+<h1>🚀 Cyber Range SOC Dashboard</h1>
+
+<form method="POST" action="/attack">
+    <input type="text" name="target" placeholder="Enter Target IP" required>
+
+    <select name="attack_type">
+        <option value="scan">Port Scan</option>
+        <option value="brute">Brute Force</option>
+        <option value="web">Web Attack</option>
+        <option value="ddos">DDOS</option>
+    </select>
+
+    <button type="submit">Launch Attack</button>
+</form>
+
+<h2>📊 Alerts</h2>
+
+<table>
+    <tr>
+        <th>Timestamp</th>
+        <th>Source IP</th>
+        <th>Attack Type</th>
+        <th>Severity</th>
+    </tr>
+
+    {% for alert in alerts %}
+    <tr>
+        <td>{{ alert[1] }}</td>
+        <td>{{ alert[2] }}</td>
+        <td>{{ alert[3] }}</td>
+        <td class="{{ alert[4] }}">{{ alert[4] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
