@@ -20,7 +20,7 @@ class EVEParserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "eve.json"
             path.write_text(
-                "\\n".join([json.dumps(events[0]), "{broken-json", json.dumps(events[1])]) + "\\n",
+                "\n".join([json.dumps(events[0]), "{broken-json", json.dumps(events[1])]) + "\n",
                 encoding="utf-8",
             )
             inserted_ids = set()
