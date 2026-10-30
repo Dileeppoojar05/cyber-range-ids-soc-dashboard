@@ -1,32 +1,42 @@
+"""Generate sample DoS EVE-style records without sending network traffic."""
+
+import json
 import sys
 import time
-import json
+from pathlib import Path
 
-LOG_FILE = "eve.json"
+from safety import require_lab_target
 
-def write_event(target, i):
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+OUTPUT_FILE = PROJECT_ROOT / "instance" / "simulated-eve.jsonl"
+
+
+def write_event(target: str, index: int) -> None:
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     event = {
         "event_type": "alert",
         "timestamp": time.time(),
         "src_ip": target,
-        "alert": {
-            "signature": "DDoS flood"
-        }
+        "alert": {"signature": "DoS flood simulation"},
+        "simulation_id": index,
     }
+    with OUTPUT_FILE.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event) + "\n")
 
-    with open(LOG_FILE, "a") as f:
-        f.write(json.dumps(event) + "\n")
 
-def ddos(target):
-    print(f"[DDOS] Simulating traffic flood on {target}")
+def ddos(target: str) -> None:
+    target = require_lab_target(target)
+    print(f"[DoS SIMULATION] Lab target: {target}")
+    for index in range(1, 11):
+        write_event(target, index)
+        print(f"Recorded simulated event {index}/10")
+        time.sleep(0.1)
+    print(f"[DONE] Sample events written to {OUTPUT_FILE.relative_to(PROJECT_ROOT)}")
 
-    for i in range(10):
-        print(f"Packet {i} sent")
-        write_event(target, i)
-        time.sleep(0.2)
-
-    print("[DONE] DDOS simulation complete")
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else input("Target: ")
-    ddos(target)
+    try:
+        ddos(sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1")
+    except ValueError as error:
+        print(f"[BLOCKED] {error}", file=sys.stderr)
+        raise SystemExit(2)

@@ -1,1 +1,1 @@
-{"event_type":"alert","timestamp":"test","src_ip":"127.0.0.1","alert":{"signature":"DDoS flood"}}
+{"event_type":"alert","timestamp":"2026-10-30T12:00:00.000000+0000","src_ip":"127.0.0.1","alert":{"signature":"DDoS flood simulation sample"}}

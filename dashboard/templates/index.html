@@ -1,88 +1,179 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Cyber Range Dashboard</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
-            padding: 20px;
-        }
-
-        h1 { color: #38bdf8; }
-
-        form {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        input, select, button {
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            border: none;
-        }
-
-        button {
-            background: #38bdf8;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            border: 1px solid #334155;
-            padding: 10px;
-        }
-
-        th { background: #1e293b; }
-
-        .HIGH { color: orange; }
-        .CRITICAL { color: red; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>Cyber Range | SOC Console</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1220;
+      --panel: #111c2e;
+      --panel-2: #16243a;
+      --line: #263751;
+      --text: #e5edf8;
+      --muted: #91a3bb;
+      --cyan: #5eead4;
+      --blue: #7dd3fc;
+      --red: #fb7185;
+      --amber: #fbbf24;
+      --green: #86efac;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at top right, #142943 0, var(--bg) 48%);
+      color: var(--text);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 32px 0 56px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 28px; }
+    .eyebrow { color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { margin: 5px 0 0; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.04em; }
+    .sub { color: var(--muted); margin: 7px 0 0; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--green); font-size: 12px; white-space: nowrap; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px #86efac88; }
+    .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 22px 0; }
+    .card, .panel { background: linear-gradient(145deg, #142239, var(--panel)); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 16px 40px #0002; }
+    .metric { padding: 17px 18px; }
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-value { font-size: 30px; font-weight: 750; letter-spacing: -.04em; margin-top: 5px; }
+    .metric-value.critical { color: var(--red); }
+    .metric-value.high { color: var(--amber); }
+    .metric-value.medium { color: var(--blue); }
+    .metric-value.low { color: var(--green); }
+    .columns { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.5fr); gap: 16px; align-items: start; }
+    .panel { padding: 20px; }
+    .panel h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .panel-note { margin: 5px 0 17px; color: var(--muted); font-size: 12px; }
+    label { display: block; color: #bac9dc; font-size: 12px; font-weight: 650; margin: 13px 0 6px; }
+    input, select { width: 100%; color: var(--text); background: #0b1526; border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; font: inherit; outline: none; }
+    input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px #5eead41c; }
+    button { border: 0; border-radius: 9px; padding: 11px 15px; background: var(--cyan); color: #06251f; font: inherit; font-weight: 800; cursor: pointer; }
+    button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .primary { width: 100%; margin-top: 16px; }
+    .secondary { background: #1c3650; border: 1px solid #34516d; color: var(--text); }
+    .full-note { color: var(--muted); font-size: 11px; margin: 12px 0 0; }
+    .flash { border-radius: 10px; padding: 11px 13px; margin: 0 0 12px; font-size: 13px; border: 1px solid var(--line); }
+    .flash.success { background: #0d2a26; border-color: #176354; color: #a7f3d0; }
+    .flash.error { background: #301923; border-color: #733044; color: #fecdd3; }
+    .toolbar { display: flex; gap: 9px; align-items: end; flex-wrap: wrap; margin: 15px 0; }
+    .toolbar .field { flex: 1 1 150px; }
+    .toolbar label { margin-top: 0; }
+    .toolbar button { flex: 0 0 auto; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+    th { color: var(--muted); font-size: 11px; text-align: left; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #25354c; vertical-align: top; }
+    tbody tr:hover { background: #ffffff08; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .pill { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 850; letter-spacing: .05em; }
+    .pill.CRITICAL { background: #4c1d2b; color: #fda4af; }
+    .pill.HIGH { background: #493017; color: #fcd34d; }
+    .pill.MEDIUM { background: #173653; color: #7dd3fc; }
+    .pill.LOW { background: #173b31; color: #86efac; }
+    .source { color: var(--muted); font-size: 11px; }
+    .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+    .bottom { color: var(--muted); font-size: 11px; text-align: center; margin-top: 22px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(3, 1fr); } .columns { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .shell { width: min(100% - 22px, 1180px); padding-top: 22px; } .topbar { align-items: flex-start; flex-direction: column; } .grid { grid-template-columns: repeat(2, 1fr); } .metric:last-child { grid-column: span 2; } .panel { padding: 15px; } }
+  </style>
 </head>
 <body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Blue Team · Security Operations</div>
+        <h1>Cyber Range <span style="color:var(--cyan)">/</span> SOC Console</h1>
+        <p class="sub">Controlled attack simulations, IDS event ingestion and alert triage.</p>
+      </div>
+      <div class="status"><span class="dot"></span> Local dashboard ready</div>
+    </header>
 
-<h1>🚀 Cyber Range SOC Dashboard</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
 
-<form method="POST" action="/attack">
-    <input type="text" name="target" placeholder="Enter Target IP" required>
+    <section class="grid" aria-label="Alert summary">
+      <div class="card metric"><div class="metric-label">Total alerts</div><div class="metric-value">{{ stats.total }}</div></div>
+      <div class="card metric"><div class="metric-label">Critical</div><div class="metric-value critical">{{ stats.critical }}</div></div>
+      <div class="card metric"><div class="metric-label">High</div><div class="metric-value high">{{ stats.high }}</div></div>
+      <div class="card metric"><div class="metric-label">Medium</div><div class="metric-value medium">{{ stats.medium }}</div></div>
+      <div class="card metric"><div class="metric-label">Low</div><div class="metric-value low">{{ stats.low }}</div></div>
+    </section>
 
-    <select name="attack_type">
-        <option value="scan">Port Scan</option>
-        <option value="brute">Brute Force</option>
-        <option value="web">Web Attack</option>
-        <option value="ddos">DDOS</option>
-    </select>
+    <section class="columns">
+      <div class="panel">
+        <h2>Red Team · Scenario launcher</h2>
+        <p class="panel-note">Run a short, controlled demonstration against a private lab IPv4 address.</p>
+        <form method="post" action="{{ url_for('attack') }}">
+          <label for="target">Lab target IPv4</label>
+          <input id="target" name="target" type="text" inputmode="decimal" value="127.0.0.1" placeholder="127.0.0.1" required>
+          <label for="attack_type">Simulation scenario</label>
+          <select id="attack_type" name="attack_type">
+            <option value="scan">TCP port check · fixed 5 ports</option>
+            <option value="brute">Brute-force concept · offline</option>
+            <option value="web">Web attack indicators · offline</option>
+            <option value="ddos">DDoS traffic pattern · offline</option>
+          </select>
+          <button class="primary" type="submit">Run lab simulation</button>
+        </form>
+        <p class="full-note">Public IPs, hostnames and URLs are rejected. The offline scenarios do not send exploit traffic, login attempts or flood packets.</p>
+        <div style="height:1px;background:var(--line);margin:20px 0"></div>
+        <h2>Blue Team · IDS ingestion</h2>
+        <p class="panel-note">Import alert events from the configured root-level <span class="mono">eve.json</span> file.</p>
+        <form method="post" action="{{ url_for('ingest_ids') }}">
+          <button class="secondary" type="submit">Import Suricata EVE alerts</button>
+        </form>
+        <p class="full-note">Repeated imports are deduplicated. This is a manual import; live tailing is not configured.</p>
+      </div>
 
-    <button type="submit">Launch Attack</button>
-</form>
-
-<h2>📊 Alerts</h2>
-
-<table>
-    <tr>
-        <th>Timestamp</th>
-        <th>Source IP</th>
-        <th>Attack Type</th>
-        <th>Severity</th>
-    </tr>
-
-    {% for alert in alerts %}
-    <tr>
-        <td>{{ alert[1] }}</td>
-        <td>{{ alert[2] }}</td>
-        <td>{{ alert[3] }}</td>
-        <td class="{{ alert[4] }}">{{ alert[4] }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
+      <div class="panel">
+        <h2>Alert queue</h2>
+        <p class="panel-note">Latest 500 records · filter by severity, source IP, category or signature.</p>
+        <form class="toolbar" method="get" action="{{ url_for('index') }}">
+          <div class="field">
+            <label for="q">Search alerts</label>
+            <input id="q" name="q" type="search" value="{{ query }}" placeholder="IP, attack type or signature">
+          </div>
+          <div class="field" style="max-width:150px">
+            <label for="severity">Severity</label>
+            <select id="severity" name="severity">
+              {% for level in ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] %}
+                <option value="{{ level }}" {% if severity_filter == level %}selected{% endif %}>{{ level }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit">Filter</button>
+          <a href="{{ url_for('index') }}" style="color:var(--blue);font-size:12px;padding:10px 2px">Clear</a>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Time</th><th>Source IP</th><th>Event</th><th>Severity</th><th>Origin</th></tr>
+            </thead>
+            <tbody>
+              {% for alert in alerts %}
+                <tr>
+                  <td class="mono">{{ alert.timestamp }}</td>
+                  <td class="mono">{{ alert.source_ip }}</td>
+                  <td>{{ alert.attack_type }}{% if alert.details %}<div class="source">{{ alert.details }}</div>{% endif %}</td>
+                  <td><span class="pill {{ alert.severity }}">{{ alert.severity }}</span></td>
+                  <td class="source">{{ alert.source }}</td>
+                </tr>
+              {% else %}
+                <tr><td class="empty" colspan="5">No alerts match this view. Run a lab simulation or import IDS events.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <footer class="bottom">Educational cyber range · Use only systems you own or are authorised to test · IPS response is simulated, not a host firewall action.</footer>
+  </main>
 </body>
 </html>
