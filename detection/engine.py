@@ -1,17 +1,16 @@
-def classify_attack(signature):
-    sig = signature.lower()
+"""Small signature classifier for the educational Cyber Range."""
 
-    if "ddos" in sig or "flood" in sig:
+
+def classify_attack(signature: str) -> tuple[str, str]:
+    """Map an IDS signature to a display category and severity."""
+    sig = str(signature or "").casefold()
+
+    if any(term in sig for term in ("ddos", "dos flood", "flood", "udp flood")):
         return "DDoS Attack", "HIGH"
-
-    elif "scan" in sig:
-        return "Port Scan", "MEDIUM"
-
-    elif "brute" in sig:
+    if any(term in sig for term in ("brute", "password attack", "login attempt")):
         return "Brute Force", "HIGH"
-
-    elif "web" in sig:
+    if any(term in sig for term in ("sql injection", "xss", "web attack", "web application")):
         return "Web Attack", "MEDIUM"
-
-    else:
-        return "Unknown", "LOW"
+    if any(term in sig for term in ("scan", "portscan", "recon")):
+        return "Port Scan", "MEDIUM"
+    return "Unknown", "LOW"
