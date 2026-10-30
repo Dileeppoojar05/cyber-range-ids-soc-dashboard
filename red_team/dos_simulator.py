@@ -21,7 +21,7 @@ def write_event(target: str, index: int) -> None:
         "simulation_id": index,
     }
     with OUTPUT_FILE.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(event) + "\\n")
+        handle.write(json.dumps(event) + "\n")
 
 
 def ddos(target: str) -> None:
